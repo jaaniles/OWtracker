@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="/socket.io/socket.io.js"></script>
+    <link href="/css/OWtracker.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/3.6.4/firebase.js"></script>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.css">
+    <script src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
+    <script>
+    // Initialize Firebase
+    var config = {
+        apiKey: "AIzaSyCmBhbJCioIU0_9AWsrvyhEcZBHgH6S1gI",
+        authDomain: "scoretracker-9a7e5.firebaseapp.com",
+        databaseURL: "https://scoretracker-9a7e5.firebaseio.com",
+        storageBucket: "scoretracker-9a7e5.appspot.com",
+        messagingSenderId: "783389239694"
+    };
+    firebase.initializeApp(config);
+    var database = firebase.database()
+    </script>
+
+    <meta charset="UTF-8">
+    <title>OW Rating Tracker</title>
+</head>
+<body>
+    <div class="box">
+        <div id="players"></div>        
+    </div>
+
+    <div id='charts'></div>
+</body>
+</html>
+<script>
+    var socket = io.connect(window.location.origin)
+    socket.on("broadcastPlayers", function(data){
+        var playersList = []
+        document.getElementById("players").innerHTML = ""
+
+        var players = data.players
+        Object.keys(players).forEach(function(player) {
+            var player = players[player]
+            var newestRank = player.ranks[Object.keys(player.ranks)[Object.keys(player.ranks).length-1]]
+
+            var playerName = player.playerName.split('-')[0]
+            playersList.push(player)
+            var playerChart = playerName + "_chart"
+            var playerBox = "<div class='box'><h4>"+playerName+"</h4>"
+            +"<p id='"+playerName+"_rank'><img src='"+player.rankImg+"' class='rankImg'>"
+                +newestRank.rank
+            +"</p>"
+            +"<img id='"+playerName+"_avatar' class='avatar' src='"+player.avatar+"'>"
+            +"<div id='"+playerChart+"' class='ct-chart ct-perfect-fourth'></div>"
+            +"</div>"
+            document.getElementById("players").innerHTML += playerBox
+        });
+        playersList.forEach(function(player){
+            var labels = []
+            var series = []
+            
+            Object.keys(player.ranks).forEach(function(rank) {
+                labels.push(timeConverter(player.ranks[rank].timestamp))
+                series.push(player.ranks[rank].rank)
+            })
+
+            // Chart stuff
+            var data = {
+                labels: labels,
+                series: [series]
+            };
+            var playerChart = player.playerName.split('-')[0]+"_chart"
+            console.log(playerChart)
+            new Chartist.Line("#"+playerChart, data)
+
+        })
+    })
+    socket.on("broadcastPlayer", function(data){
+        var player = data.player
+        var playerName = player.playerName.split('-')[0]
+        var rankImg = "<img src='"+player.rankImg+"' class='rankImg'>"
+        var newestRank = player.ranks[Object.keys(player.ranks)[Object.keys(player.ranks).length-1]]
+
+        document.getElementById(playerName+"_avatar").src = player.avatar
+        document.getElementById(playerName+"_rank").innerHTML = rankImg + newestRank.rank
+
+    })
+    
+    /*
+    addRating("naamaan-2149", "https://blzgdapipro-a.akamaihd.net/game/unlocks/0x0250000000000776.png")
+    addRating("Multix-2831", "https://blzgdapipro-a.akamaihd.net/game/unlocks/0x0250000000000776.png")
+    addRating("Masennus-2495", "https://blzgdapipro-a.akamaihd.net/game/unlocks/0x0250000000000776.png")
+    addRating("Eenokki-2380", "https://blzgdapipro-a.akamaihd.net/game/unlocks/0x0250000000000776.png")
+    addRating("Goljatti-2382", "https://blzgdapipro-a.akamaihd.net/game/unlocks/0x0250000000000776.png")
+    addRating("veldt-21233", "https://blzgdapipro-a.akamaihd.net/game/unlocks/0x0250000000000776.png")
+    */
+
+    function addRating(player, avatar){
+        database.ref("players/" + player).set({
+            avatar: avatar,
+            playerName: player,
+            ranks: {
+                0: {
+                    rank: 0,
+                    timestamp: 0
+                }
+            }
+        })
+    }
+
+    function timeConverter(UNIX_timestamp){
+        var a = new Date(UNIX_timestamp * 1000);
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        var year = a.getFullYear();
+        var month = months[a.getMonth()];
+        var date = a.getDate();
+        var hour = a.getHours();
+        var min = a.getMinutes();
+        var sec = a.getSeconds();
+        var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
+        return time;
+    }
+</script>
