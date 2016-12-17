@@ -47,6 +47,7 @@
             var uid = user.uid;
             var providerData = user.providerData;
             user.getToken().then(function(accessToken) {
+                toggleSpinningCursor(true)
                 socket.emit("sign_in", {user: accessToken})
             });
           } else {
@@ -67,17 +68,19 @@
 </head>
 <body>
     <div id="firebaseui-auth-container"></div>
+    <div class="box hide message" id="message">
+    </div>
     <div id="signed_in_view" class="hide">
-        <h1>Hello, <span id='displayName'></span></h1>
-        <div class="box">
-            <input id='battlenet' type="text" placeholder="BattleTag (ex. player#6666)">
+        <h1 id="greeting">Hello, <span id='displayName'></span></h1>
+        <div class="box" id="addPlayerDiv">
+            <input id='battlenet' type="text" placeholder="BattleTag (ex. player#6666)" onkeypress="handleKeyPress(event)">
             <button onclick="addPlayer()">Track player</button>
             <br>
             <i><small>
                 Case sensitive
             </small></i>
         </div>
-        <div id="players">
+        <div id="players" class="grid">
             <i id='playerLoader' class="fa fa-spinner fa-spin fa-3x fa-fw"></i>    
         </div> 
         <button onclick='signOut()'>Log out</button>       
@@ -92,6 +95,7 @@
         var user = firebase.auth().currentUser;
         if (user) {
             user.getToken().then(function(accessToken) {
+                toggleSpinningCursor(true)
                 socket.emit("add_player", {battleNet: battleNet, tkn: accessToken})
             })
         } 
@@ -116,6 +120,7 @@
     }
     var socket = io.connect(window.location.origin)
     socket.on("playerdata", function(data){
+        toggleSpinningCursor(false, true)
         document.getElementById('playerLoader').className = "hide"
         var player = data.player
         if (!player){
@@ -131,7 +136,7 @@
         }
         // Player does not exist, let's add 
         playerlist.push({playerName: playerName, ranks: player.ranks})
-        var playerBox = "<div class='box'><h4>"+playerName+"</h4>"
+        var playerBox = "<div class='box divGrid playerbox'><h4>"+playerName+"</h4>"
         +"<p id='"+playerName+"_rank'><img src='"+newestRank.rank_img+"' class='rankImg'>"
             +newestRank.rank
         +"</p>"
@@ -155,81 +160,16 @@
         drawCharts()
     }
 
-    socket.on("broadcastPlayers", function(data){
-        var playersList = []
-        document.getElementById("players").innerHTML = ""
-
-        var players = data.players
-        Object.keys(players).forEach(function(player) {
-            var player = players[player]
-            var newestRank = player.ranks[Object.keys(player.ranks)[Object.keys(player.ranks).length-1]]
-
-            var playerName = player.playerName.split('-')[0]
-            playersList.push(player)
-            var playerChart = playerName + "_chart"
-            var playerBox = "<div class='box'><h4>"+playerName+"</h4>"
-            +"<p id='"+playerName+"_rank'><img src='"+player.rankImg+"' class='rankImg'>"
-                +newestRank.rank
-            +"</p>"
-            +"<img id='"+playerName+"_avatar' class='avatar' src='"+player.avatar+"'>"
-            +"<div id='"+playerChart+"' class='ct-chart ct-perfect-fourth'></div>"
-            +"</div>"
-            document.getElementById("players").innerHTML += playerBox
-        });
-        playersList.forEach(function(player){
-            var labels = []
-            var series = []
-            
-            Object.keys(player.ranks).forEach(function(rank) {
-                labels.push(timeConverter(player.ranks[rank].timestamp))
-                series.push(player.ranks[rank].rank)
-            })
-
-            // Chart stuff
-            var data = {
-                labels: labels,
-                series: [series]
-            };
-            var playerChart = player.playerName.split('-')[0]+"_chart"
-            console.log(playerChart)
-            new Chartist.Line("#"+playerChart, data)
-
-        })
+    socket.on("message", function(data){
+        toggleSpinningCursor(false, true)
+        var message = "<p>"+data.message+"</p>"
+        document.getElementById("message").innerHTML = message
+        document.getElementById("message").className = "box message"
+        setTimeout(function(){
+            document.getElementById("message").innerHTML = ""
+            document.getElementById("message").className = "box hide message"
+        }, 5000)
     })
-    socket.on("broadcastPlayer", function(data){
-        return;
-        var player = data.player
-        var playerName = player.playerName.split('-')[0]
-        var rankImg = "<img src='"+player.rankImg+"' class='rankImg'>"
-        var newestRank = player.ranks[Object.keys(player.ranks)[Object.keys(player.ranks).length-1]]
-
-        document.getElementById(playerName+"_avatar").src = player.avatar
-        document.getElementById(playerName+"_rank").innerHTML = rankImg + newestRank.rank
-
-    })
-    
-    /*
-    addRating("naamaan-2149", "https://blzgdapipro-a.akamaihd.net/game/unlocks/0x0250000000000776.png")
-    addRating("Multix-2831", "https://blzgdapipro-a.akamaihd.net/game/unlocks/0x0250000000000776.png")
-    addRating("Masennus-2495", "https://blzgdapipro-a.akamaihd.net/game/unlocks/0x0250000000000776.png")
-    addRating("Eenokki-2380", "https://blzgdapipro-a.akamaihd.net/game/unlocks/0x0250000000000776.png")
-    addRating("Goljatti-2382", "https://blzgdapipro-a.akamaihd.net/game/unlocks/0x0250000000000776.png")
-    addRating("veldt-21233", "https://blzgdapipro-a.akamaihd.net/game/unlocks/0x0250000000000776.png")
-    */
-
-    function addRating(player, avatar){
-        database.ref("players/" + player).set({
-            avatar: avatar,
-            playerName: player,
-            ranks: {
-                0: {
-                    rank: 0,
-                    timestamp: 0
-                }
-            }
-        })
-    }
-
     function timeConverter(UNIX_timestamp){
         var a = new Date(UNIX_timestamp * 1000);
         var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -246,5 +186,27 @@
         firebase.auth().signOut().then(function() {
             console.log('Signed Out');
         })
+    }
+    function toggleSpinningCursor(show, hide){
+        if (show){
+            document.body.style.cursor = "wait"
+            return;
+        }
+        if (hide){
+            document.body.style.cursor = "auto"
+            return
+        }
+
+        if (document.body.style.cursor != "wait"){
+            document.body.style.cursor = "wait"
+        } else {
+            document.body.style.cursor = "auto"
+        }
+    }
+    function handleKeyPress(e){
+        var key = e.keyCode || e.which;
+        if (key == 13){
+            addPlayer();
+        }
     }
 </script>
