@@ -70,11 +70,11 @@
     <div id="signed_in_view" class="hide">
         <h1>Hello, <span id='displayName'></span></h1>
         <div class="box">
-            <input id='battlenet' type="text" placeholder="BattleTag">
+            <input id='battlenet' type="text" placeholder="BattleTag (ex. player#6666)">
             <button onclick="addPlayer()">Track player</button>
             <br>
             <i><small>
-                Upper/lowercase matter. (ex. player#6666)
+                Case sensitive
             </small></i>
         </div>
         <div id="players">
@@ -117,10 +117,19 @@
     var socket = io.connect(window.location.origin)
     socket.on("playerdata", function(data){
         document.getElementById('playerLoader').className = "hide"
-        
         var player = data.player
+        if (!player){
+            return
+        }
         var playerName = player.playerName
         var newestRank = player.ranks[Object.keys(player.ranks)[Object.keys(player.ranks).length-1]]
+        for (var i = 0; i < playerlist.length; i++){
+            if (playerlist[i].playerName == playerName){
+                updatePlayer(player, i);
+                return;
+            }
+        }
+        // Player does not exist, let's add 
         playerlist.push({playerName: playerName, ranks: player.ranks})
         var playerBox = "<div class='box'><h4>"+playerName+"</h4>"
         +"<p id='"+playerName+"_rank'><img src='"+newestRank.rank_img+"' class='rankImg'>"
@@ -133,6 +142,18 @@
 
         drawCharts()
     })
+
+    function updatePlayer(player, index){
+        var playerName = player.playerName
+        var newestRank = player.ranks[Object.keys(player.ranks)[Object.keys(player.ranks).length-1]]
+        document.getElementById(playerName+"_rank").innerHTML = newestRank.rank
+        document.getElementById(playerName+"_avatar").src = player.avatar
+
+        playerlist.splice(index, 1)
+        playerlist.push({playerName: playerName, ranks: player.ranks})
+
+        drawCharts()
+    }
 
     socket.on("broadcastPlayers", function(data){
         var playersList = []
