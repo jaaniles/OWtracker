@@ -35,7 +35,7 @@ var path = require("path")
 var args = require("minimist")(process.argv.slice(2))
 
 const PORT = args.port || 3000
-const HOST = args.host || 'localhost'
+const HOST = args.host || '127.0.0.1'
 const POLLING_INTERVAL = 10000 //ms
 
 // Serve index.html
