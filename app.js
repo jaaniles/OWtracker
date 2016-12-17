@@ -247,6 +247,6 @@ var polling = setInterval(function(){
     })
 }, POLLING_INTERVAL)
 
-
-server.listen(PORT, HOST);
-console.log("Up and running at port :: " + PORT)
+server.listen(PORT, HOST, function () {
+  console.log("Up and running at port :: " + PORT)
+});
