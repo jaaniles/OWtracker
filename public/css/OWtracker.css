@@ -9,85 +9,91 @@ a {
 }
 button {
     border: none;
-    width: 100%;
     margin-top: 5px;
     height: 25px;
 }
 button:hover{
-    color: yellow;
-    background-color: gray;
+    color: #FF7148;
+    background-color: #C7D0D5;
 }
 #addPlayerDiv{
+    background-color: white;
+    box-shadow: 0 1px 3px 0 rgba(0,0,0,0.2),0 1px 1px 0 rgba(0,0,0,0.14),0 2px 1px -1px rgba(0,0,0,0.12);
+    border-radius: 2px;
     max-width: 400px;
 }
-#logoutBtn{
-    width: 100px;
+#logoutDiv button{
+    float: right;
+}
+#logoutDiv img{
+    width: 35px;
+    height: 35px;
+}
+.smallImg{
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
 }
 @media screen and (min-width: 1441px) and (max-width: 5000px) { 
     .box {
         max-width: 2200px;
         margin: 40px auto;
-        box-shadow: 0 1px 3px 0 rgba(0,0,0,0.2),0 1px 1px 0 rgba(0,0,0,0.14),0 2px 1px -1px rgba(0,0,0,0.12);
-        border-radius: 2px;
-        background: white;
         padding: 16px 24px;
     }
     .playerbox{
-        max-width: 500px;
-    }
-    .divGrid{
-        float: left;
-        width: 25%;
-    }
-}
-@media screen and (min-width: 769px) and (max-width: 1440px) { 
-    .box {
-        max-width: 1400px;
-        margin: 40px auto;
+        min-width: 600px;
+        margin-right: 15px;
+        background-color: white;
         box-shadow: 0 1px 3px 0 rgba(0,0,0,0.2),0 1px 1px 0 rgba(0,0,0,0.14),0 2px 1px -1px rgba(0,0,0,0.12);
         border-radius: 2px;
-        background: white;
-        padding: 16px 24px;
-    }
-    .playerbox{
-        max-width: 466px;
     }
     .divGrid{
         float: left;
-        width: 33%;
+        width: 30%;
     }
-}
-@media screen and (min-width: 481px) and (max-width: 768px) { 
-    .box {
-        max-width: 1000px;
-        margin: 40px auto;
+    #logoutDiv{
         box-shadow: 0 1px 3px 0 rgba(0,0,0,0.2),0 1px 1px 0 rgba(0,0,0,0.14),0 2px 1px -1px rgba(0,0,0,0.12);
         border-radius: 2px;
-        background: white;
-        padding: 16px 24px;
+        padding: 2px 24px;
+        position: absolute;
+        right: 5px;
+        top: 2px;
+        margin-right: 15px;
     }
-    .playerbox{
-        max-width: 500px;
-    }
-    .divGrid{
-        float: left;
-        width: 90%;
+    #headlines{
+        position: absolute;
+        top: 5px;
+        left: 15px;
     }
 }
-@media screen and (min-width: 1px) and (max-width: 480px){ 
+@media screen and (min-width: 422px) and (max-width: 1440px) { 
     .box {
         max-width: 800px;
         margin: 40px auto;
+        padding: 16px 24px;
+    }
+    .playerbox{
+        max-width: 800px;
+        margin-right: 15px;
+        background-color: white;
         box-shadow: 0 1px 3px 0 rgba(0,0,0,0.2),0 1px 1px 0 rgba(0,0,0,0.14),0 2px 1px -1px rgba(0,0,0,0.12);
         border-radius: 2px;
-        background: white;
-        padding: 16px 24px;
     }
     .divGrid{
         float: none;
         width: 80%
     }
+    #logoutDiv{
+        box-shadow: 0 1px 3px 0 rgba(0,0,0,0.2),0 1px 1px 0 rgba(0,0,0,0.14),0 2px 1px -1px rgba(0,0,0,0.12);
+        border-radius: 2px;
+        padding: 2px 24px;
+        margin-right: 15px;
+    }
+    #headlines{
+        display: none;
+    }
 }
+
 #greeting{
         font-family: Georgia, "Times New Roman", Times, serif;
         font-size:24px;
@@ -141,4 +147,31 @@ input[type="text"]:focus {
   outline: none;
 }
 
-
+.addplayer_navigation{
+    background-color: white;
+    box-shadow: 0 1px 3px 0 rgba(0,0,0,0.2),0 1px 1px 0 rgba(0,0,0,0.14),0 2px 1px -1px rgba(0,0,0,0.12);
+    border-radius: 2px;
+    padding: 15px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 300px;
+}
+.smallHeadline{
+    font-family: Gill Sans, Verdana;
+    font-size: 11px;
+    line-height: 14px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: bold;  
+}
+.largeHeadline{
+    font-family: times, Times New Roman, times-roman, georgia, serif;
+    color: #444;
+    margin: 0;
+    padding: 0px 0px 6px 0px;
+    font-size: 51px;
+    line-height: 44px;
+    letter-spacing: -2px;
+    font-weight: bold;
+}
