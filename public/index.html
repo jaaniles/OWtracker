@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <title>ELO killer</title>
+    <link rel="icon" 
+      type="image/png" 
+      href="img/https://firebasestorage.googleapis.com/v0/b/scoretracker-9a7e5.appspot.com/o/torb.png?alt=media&token=cc4aacb6-78bd-4869-97e6-68b140eeef72">
     <script src="/socket.io/socket.io.js"></script>
     <link href="/css/OWtracker.css" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/3.6.4/firebase.js"></script>
@@ -23,12 +27,12 @@
 
     // FirebaseUI config.
     var uiConfig = {
-        signInSuccessUrl: '/success',
+        signInSuccessUrl: '/',
         signInOptions: [
             firebase.auth.GoogleAuthProvider.PROVIDER_ID,
             firebase.auth.EmailAuthProvider.PROVIDER_ID
         ],
-        tosUrl: '/tos'
+        tosUrl: '/'
     };
     var ui = new firebaseui.auth.AuthUI(firebase.auth());
     ui.start('#firebaseui-auth-container', uiConfig);
@@ -38,14 +42,24 @@
           if (user) {
             document.getElementById("signed_in_view").className = "box"
             document.getElementById("firebaseui-auth-container").className = "hide"
+            document.getElementById("addPlayerDiv").style.display = "block" 
+            document.getElementById("logoutDiv").className = ""
+
             // User is signed in.
             var displayName = user.displayName;
-            document.getElementById("displayName").innerHTML = displayName
             var email = user.email;
             var emailVerified = user.emailVerified;
             var photoURL = user.photoURL;
             var uid = user.uid;
             var providerData = user.providerData;
+
+            document.getElementById("displayName").innerHTML = displayName
+            if (!photoURL){
+                document.getElementById("photoUrl").src = "https://firebasestorage.googleapis.com/v0/b/scoretracker-9a7e5.appspot.com/o/torb.png?alt=media&token=cc4aacb6-78bd-4869-97e6-68b140eeef72"
+            } else {
+                document.getElementById("photoUrl").src = photoURL
+            }
+
             user.getToken().then(function(accessToken) {
                 toggleSpinningCursor(true)
                 socket.emit("sign_in", {user: accessToken})
@@ -53,6 +67,8 @@
           } else {
                 document.getElementById("signed_in_view").className = "box hide"
                 document.getElementById("firebaseui-auth-container").className = ""
+                document.getElementById("addPlayerDiv").style.display = "none" 
+                document.getElementById("logoutDiv").className = "hide"
           }
         }, function(error) {
           console.log(error);
@@ -67,23 +83,31 @@
     <title>OW Rating Tracker</title>
 </head>
 <body>
-    <div id="firebaseui-auth-container"></div>
-    <div class="box hide message" id="message">
-    </div>
-    <div id="signed_in_view" class="hide">
-        <h1 id="greeting">Hello, <span id='displayName'></span></h1>
-        <div class="box" id="addPlayerDiv">
-            <input id='battlenet' type="text" placeholder="BattleTag (ex. player#6666)" onkeypress="handleKeyPress(event)">
-            <button onclick="addPlayer()">Track player</button>
-            <br>
-            <i><small>
-                Case sensitive
-            </small></i>
+    <div id="container">
+        <div id="headlines">
+            <h4 class='smallHeadline'>Track Overwatch Rating</h4>
+            <h2 class='largeHeadline'>ELO killer</h2>
         </div>
-        <div id="players" class="grid">
-            <i id='playerLoader' class="fa fa-spinner fa-spin fa-3x fa-fw"></i>    
-        </div> 
-        <button onclick='signOut()'>Log out</button>       
+        <div id="addPlayerDiv" class="addplayer_navigation" style="display:none">
+            <div style="width: 100%">
+                <img style="width:100%;height: 40px;" src="https://upload.wikimedia.org/wikipedia/commons/1/10/Overwatch_text_logo.svg">
+            </div>
+            <input id='battlenet' type="text" placeholder="BattleTag (ex. player#6666)" onkeypress="handleKeyPress(event)">
+            <p><button onclick="addPlayer()">Track player</button><small style="margin-left: 15px"><i>Case sensitive</i></small></p>
+            <div class="hide message" id="message">
+            </div>
+        </div>
+        <div id="firebaseui-auth-container"></div>
+        <div id="signed_in_view" class="hide">
+            <div id="players" class="grid">
+                <i id='playerLoader' class="fa fa-spinner fa-spin fa-3x fa-fw"></i>    
+            </div>       
+        </div>
+        <div id="logoutDiv" class="hide">
+            <p id="displayName"></p>
+            <img id="photoUrl" src="">
+            <button onclick='signOut()' id="logoutBtn">Log out</button>
+        </div>
     </div>
 </body>
 </html>
@@ -115,7 +139,12 @@
                 series: [series]
             };
             var playerChart = player.playerName+"_chart"
-            new Chartist.Line("#"+playerChart, data)
+            new Chartist.Line("#"+playerChart, data, {
+                showArea: true,
+                  axisY: {
+                    onlyInteger: true,
+                }
+            })
         })
     }
     var socket = io.connect(window.location.origin)
