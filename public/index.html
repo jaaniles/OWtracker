@@ -4,7 +4,7 @@
     <title>ELO killer</title>
     <link rel="icon" 
       type="image/png" 
-      href="img/https://firebasestorage.googleapis.com/v0/b/scoretracker-9a7e5.appspot.com/o/torb.png?alt=media&token=cc4aacb6-78bd-4869-97e6-68b140eeef72">
+      href="https://firebasestorage.googleapis.com/v0/b/scoretracker-9a7e5.appspot.com/o/torb.png?alt=media&token=cc4aacb6-78bd-4869-97e6-68b140eeef72">
     <script src="/socket.io/socket.io.js"></script>
     <link href="/css/OWtracker.css" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/3.6.4/firebase.js"></script>
@@ -126,6 +126,7 @@
     }
     function drawCharts(){
         playerlist.forEach(function(player){
+            document.getElementById(player.playerName+"_chart").innerHTML = ""
             var labels = []
             var series = []
             Object.keys(player.ranks).forEach(function(rank) {
@@ -152,6 +153,7 @@
         toggleSpinningCursor(false, true)
         document.getElementById('playerLoader').className = "hide"
         var player = data.player
+        var battleNet = data.battleNet
         if (!player){
             return
         }
@@ -165,18 +167,29 @@
         }
         // Player does not exist, let's add 
         playerlist.push({playerName: playerName, ranks: player.ranks})
-        var playerBox = "<div class='box divGrid playerbox'><h4>"+playerName+"</h4>"
+        var playerBox = "<div id='"+battleNet+"_div' class='box divGrid playerbox'><h4>"+playerName+"</h4>"
         +"<p id='"+playerName+"_rank'><img src='"+newestRank.rank_img+"' class='rankImg'>"
             +newestRank.rank
         +"</p>"
         +"<img id='"+playerName+"_avatar' class='avatar' src='"+player.avatar+"'>"
         +"<div id='"+playerName+"_chart' class='ct-chart ct-perfect-fourth'></div>"
+        +"<button style='float:right' onclick='removePlayer(&quot;"+battleNet+"&quot;)' data-value='"+battleNet+"'>X</button>"
         +"</div>"
         document.getElementById("players").innerHTML += playerBox        
 
         drawCharts()
     })
-
+    function removePlayer(battleNet){
+        var user = firebase.auth().currentUser;
+        if (user) {
+            user.getToken().then(function(accessToken) {
+                toggleSpinningCursor(true)
+                socket.emit("delete_player_from_playerlist", {battleNet: battleNet, tkn: accessToken})
+                var div = document.getElementById(battleNet+"_div")
+                div.parentNode.removeChild(div)
+            })
+        }         
+    }
     function updatePlayer(player, index){
         var playerName = player.playerName
         var newestRank = player.ranks[Object.keys(player.ranks)[Object.keys(player.ranks).length-1]]
