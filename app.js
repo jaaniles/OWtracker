@@ -3,15 +3,27 @@ var app = express()
 var server = require('http').createServer(app)
 var io = require('socket.io')(server)
 var axios = require('axios')
+var cheerio = require('cheerio')
+var rp = require('request-promise')
+
 var firebase = require('firebase')
 var admin = require("firebase-admin");
 admin.initializeApp({
-    credential: admin.credential.cert({})
+    credential: admin.credential.cert({
+        "project_id": "scoretracker-9a7e5",
+        "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDthT1+5DAEa0x6\nJ3OtPZoQ3ehDf55HI5dxnr6Iv2eLPeT9jV0lqY91SNzoo5rFkUd8tgpJdiQGQ2/B\n9ULAjtJ0a6FoERiP8d8uoL6HC3dTF3N+GlVlT1hXvnCaxXBvdPaKzPI1kIzJY1I6\nT7oZzqtzHY9g8aKMnlvqm1KQrCkChln86KgHrrcmwKHgg6A4BEEbS/MQ0+PQi0rt\nH7lDnIP1rYkUaTRjC3aW5yPs6kcN/ZzfGD72Z2+j/uLhwLpCKrrBc8XVJs8c/8Kh\ntvU52OgQGlhg/4lVfjmybXEUCdV/1FpOovE/jyopzeGkNE2X8ffsfV5iyTjzZ9Hw\n7ErCex2fAgMBAAECggEAMlY3dyni5zzaI1UzFbblbMeqjouAPrFTShgLZy2xQvgm\nDHomEHJD3eZIMuFhTpeAX/Swb2sjLVSjXaads/NQtK2OsmBVJURsORSF7FbIvgpN\nRp9ME8FiBo5sjNBlCKnwCfBvMFznCVMMPSFiXk/HVAkitrfe7BAviKPMNq7Vrhvk\nd0QNR4VzIbMyLpErPwHRGgAgB28A+dsMNUNRvEI5IKTkwT6/3+bR/hrqMY4p7Ubz\nLv4rAY18Ksj/3uQKbJKJAGQqGQYIwIHOydSQTrSFjSw3hSuhWrZbTyV8XPh/zobc\nQBYR4lXG3Z9K49cuY5rsaIKxwuwSYI3wx84UmXkdoQKBgQD38VQuUAwgAB8ixRZw\nmp9l6qrGMj2VLJpvRUfDkod+secEQCYICV742yZhK/wLzwP1Abn9mXw/u22d/D7y\ngZupOwMVXyKuHwmoitsCK1kgzuzZiRwxQx1eLv/TCDlgEPuOMCjjgi+MLSKz/nhS\nCtzBarj1fLKq/Hyal7ry4KSfTwKBgQD1PTUZWFQ5fvNDK85TRvdCJ1X0T20kLQ4S\nQ3Q5mjo1fCPCHM0F2kKQs39JChk0o6b6+Zlr7WDl6wQM9TZoGRZ6CP1tCKhS7rB/\nby2ZmhYyKjv9E3BIYUWiG3nwWrk9GtJ6tN/yDDHBRtEs46VFNW8DPWuGvzyhFdK7\nhyVa6cmIsQKBgB4EK0rICg+9tAdDkOnk7jMqa64+2tG6ap/Z5Uw56wldhDgxg+kp\nKUQ7U7Qj3QmY8EOzB885y57zk9uyc/Rr2GpuaHsn30zxGPw8gzMKCGo+YtIbFTyp\ngV6rlfD4Z+nHZIzcK7cPRa5UsITV478a7YrE3stpYz/r/THB+LH6nDNlAoGAMyY5\n/fhLUNamnDr1xK7HgXe82MD8LZBsH+kLw7vkKiWjO6hQJslYGuAlSzGdAjqj6DLJ\nChavoCS9aop2d43L/1YCrYwht3JrQ5kHtMLLoFjovCciwyXupRn/+96gRhtjDQ7O\nqqhadEp19Fviq6WyasWTuL4IQjzQACb25pheXXECgYEA4MYSEIeGLV+PFSc0272V\nbeS4BtMZN1jC0p70wQm3MmqezU+w4XSDZMB5f5pQXsfbhgcu4s1KQE+POdeNHM4a\ninfQ9YMaHUH2J9fbm93whwLcxEsHfj/zxGtA1G0GMS8NIFtrvzWdRl6VG/JPxLRW\nxn8WwZ1uWn9wS40omujmwsc=\n-----END PRIVATE KEY-----\n",
+        "client_email": "firebase-adminsdk-3j1si@scoretracker-9a7e5.iam.gserviceaccount.com",
+    }),
+    databaseURL: "https://scoretracker-9a7e5.firebaseio.com/"
 });
 
 // Initialize Firebase
 var config = {
-
+    apiKey: "AIzaSyCmBhbJCioIU0_9AWsrvyhEcZBHgH6S1gI",
+    authDomain: "scoretracker-9a7e5.firebaseapp.com",
+    databaseURL: "https://scoretracker-9a7e5.firebaseio.com",
+    storageBucket: "scoretracker-9a7e5.appspot.com",
+    messagingSenderId: "783389239694"
 };
 firebase.initializeApp(config);
 var database = firebase.database()
@@ -56,14 +68,22 @@ io.on("connection", function(socket){
                     // Listen for changes for each player in user's playerlist
                     players.on('value', function(snapshot) {
                         // Something changed, emit new data
-                        socket.emit("playerdata", {player: snapshot.val()})
+                        socket.emit("playerdata", {player: snapshot.val(), battleNet: player.battleNet})
                     });
                 })
             })
         }).catch(function(error){
         })
     })
-
+    socket.on("delete_player_from_playerlist", function(data){
+        var idToken = data.tkn
+        var user = verifyUser(idToken).then(function(user){
+            deletePlayerFromPlayerlist(user.uid, data.battleNet)
+            .then(function(response){
+                socket.emit("message", {message: response})
+            })
+        })
+    })
     socket.on("add_player", function(data){
         var idToken = data.tkn
         var battleNet = data.battleNet
@@ -72,45 +92,33 @@ io.on("connection", function(socket){
                 socket.emit("message", {message: "Player does not have a competitive rank yet"})
             }
             console.log(user.displayName + " is adding battleNet: " + battleNet)
-            axios.get("https://api.lootbox.eu/pc/eu/"+battleNet+"/profile")
-            .then(function(response){
-                // Player not found
-                if (response.data.statusCode == 404){
-                    console.log(response.data.error)
-                    socket.emit("message", {message: response.data.error})
-                    return
-                } 
-                // Player found
-                var player = response.data.data
-                
+
+            var getPlayer = {
+                battleNet: battleNet,
+                region: "eu"
+            }
+
+            getPlayerData(getPlayer)
+            .then(function(player_current){ 
                 // Check if player is already in Firebase
                 database.ref("/players/"+battleNet).once('value').then(function(snapshot){
                     var snapshot = snapshot.val()
                     // Player not already in database, can add
                     // This way no overwriting will occur
                     if (snapshot === null){
-                        console.log(player)
-                        if (player.competitive.rank === null){
-                            socket.emit("message", {message: "Player does not have a competitive rank yet"})
-                            return;
-                        }
-
+                        console.log(player_current)
                         // Add player to database
-                        database.ref("players/" + battleNet).set({
-                            avatar: player.avatar,
-                            playerName: player.username,
-                            ranks: {
-                                "xxxxxx": {
-                                    rank: player.competitive.rank,
-                                    rank_img: player.competitive.rank_img,
-                                    timestamp: Math.floor(Date.now() / 1000)
-                                }
-                            }
+                        database.ref("players/" + getPlayer.battleNet).set({
+                            avatar: player_current.avatar,
+                            playerName: player_current.username,
                         }).then(function(){
-                            console.log("Player added!")
-                            socket.emit("message", {message: "Player has been added"})
+                            var timestamp = Math.floor(Date.now() / 1000)
+                            pushNewRank(battleNet, player_current.rank, player_current.rank_img, timestamp)
+
                             // Add player reference to user's playerlist
-                            addPlayerlistEntry(battleNet, user)
+                            addPlayerlistEntry(getPlayer.battleNet, user)
+
+                            socket.emit("message", {message: "Player has been added"})
                         })
                     } 
                     // Player already in database, only add playerlist entry for user
@@ -118,6 +126,8 @@ io.on("connection", function(socket){
                         addPlayerlistEntry(battleNet, user)
                     }
                 })
+            }).catch(function(error){
+                socket.emit("message", {message: error})
             })
         })
     })
@@ -137,34 +147,13 @@ io.on("connection", function(socket){
                 }).then(function(){
                     console.log("Done adding entry to playerlist")
                     database.ref("/players/"+battleNet).once('value').then(function(snapshot){
-                        socket.emit("playerdata", {player: snapshot.val()})
+                        socket.emit("playerdata", {player: snapshot.val(), battleNet: battleNet})
                     })
                 })
             }
         })
     }
 })
-function verifyUser(idToken){
-    return new Promise(function(resolve, reject){
-        console.log("Verifying user..")
-        admin.auth().verifyIdToken(idToken)
-        .then(function(decodedToken){
-            var uid = decodedToken.uid
-            console.log("User token has been decoded..")
-            // Get user that matches the decoded token
-            admin.auth().getUser(uid)
-            .then(function(userRecord){
-                console.log("Authentication successful..")
-                var authenticatedUser = userRecord.toJSON()
-                resolve(authenticatedUser)
-            }).catch(function(error){
-                reject("Can't find user")
-            })
-        }).catch(function(error){
-            reject("Can't verify user")
-        })  
-    })
-}
 function playerlistHasBattleNet(playerlist, battleNet){
     var has;
     if (!playerlist){
@@ -178,18 +167,20 @@ function playerlistHasBattleNet(playerlist, battleNet){
     return has
 }
 
-// Updates database with new data from OW Unofficial Api
+// Updates database with new data
 database.ref("/players/").once('value').then(function(snapshot){
     var players = snapshot.val()
     setInterval(function(){
-        // Loop through all players
+        // Loop through all players in database
         Object.keys(players).forEach(function(player) {
-            // Get data for that player from API
-            axios.get("https://api.lootbox.eu/pc/eu/"+player+"/profile")
-            .then(function(response){
-                var player_current = response.data.data
+            var getPlayer = {
+                battleNet: player,
+                region: "eu"
+            }
+            // Get current player data
+            getPlayerData(getPlayer).then(function(player_current){
                 var timestamp = Math.floor(Date.now() / 1000)
-                var newRank = player_current.competitive.rank
+                var newRank = player_current.rank
                 
                 // Get (perhaps outdated) player info from database
                 database.ref("/players/"+player).once('value').then(function(snapshot){
@@ -198,12 +189,7 @@ database.ref("/players/").once('value').then(function(snapshot){
 
                     // Only update if new data and current database data are different
                     if (newestRankEntry.rank != newRank && newestRankEntry.timestamp != timestamp){
-                        var newRankRef = database.ref("/players/"+player+"/ranks").push();
-                        newRankRef.set({
-                            rank_img: player_current.competitive.rank_img,
-                            rank: newRank,
-                            timestamp: timestamp
-                        });
+                        pushNewRank(player, newRank, player_current.rank_img, timestamp)
                     }
 
                     // Update avatar and maybe other info (if has changed)
@@ -214,10 +200,79 @@ database.ref("/players/").once('value').then(function(snapshot){
                         database.ref("players/"+player).update(updatedInfo)
                     }
                 })
-            })   
+            })
         })
     }, POLLING_INTERVAL)
 })
+function pushNewRank(player, newRank, newRankImg, timestamp){
+    var newRankRef = database.ref("/players/"+player+"/ranks").push();
+    newRankRef.set({
+        rank: newRank,
+        rank_img: newRankImg,
+        timestamp: timestamp
+    });   
+}
+function getPlayerData(player){
+    var playerData = {
+        avatar: "",
+        rank: "",
+        rank_img: "",
+        username: "",
+    }
+    return new Promise(function(resolve, reject){
+        rp("https://playoverwatch.com/en-us/career/pc/"+player.region+"/"+player.battleNet)
+        .then(function(htmlString){
+            const $ = cheerio.load(htmlString)
+            playerData.avatar   = $('.player-portrait').attr("src")
+            playerData.rank     = $('.competitive-rank div').html()
+            playerData.rank_img = $('.competitive-rank img').attr('src')
+            playerData.username = $('.header-masthead').text()
+
+            if (!playerData.rank || !playerData.rank_img){
+                reject("Player does not seem to have a competitive rank yet")
+                return
+            }
+
+            resolve(playerData)
+        }).catch(function(error){
+            reject("Player was not found")
+        })
+    })
+}
+function deletePlayerFromPlayerlist(uid, battleNet){
+    return new Promise(function(resolve, reject){
+        var getPlayerRef = database.ref("/users/"+uid+"/playerlist").orderByChild("battleNet").equalTo(battleNet)
+        getPlayerRef.once('value').then(function(snapshot){
+            var playerToDeleteKey = Object.keys(snapshot.val())[0]
+            database.ref("/users/"+uid+"/playerlist/"+playerToDeleteKey).remove()
+            .then(function(){
+                resolve("Player has been deleted")
+            }).catch(function(error){
+                reject("Player was not found")
+            })
+        }).catch(function(error){
+            reject("Player was not found")
+        })  
+    })
+}
+function verifyUser(idToken){
+    return new Promise(function(resolve, reject){
+        admin.auth().verifyIdToken(idToken)
+        .then(function(decodedToken){
+            var uid = decodedToken.uid
+            // Get user that matches the decoded token
+            admin.auth().getUser(uid)
+            .then(function(userRecord){
+                var authenticatedUser = userRecord.toJSON()
+                resolve(authenticatedUser)
+            }).catch(function(error){
+                reject("Can't find user")
+            })
+        }).catch(function(error){
+            reject("Can't verify user")
+        })  
+    })
+}
 
 server.listen(PORT, function () {
   console.log("Up and running at port :: " + PORT)
