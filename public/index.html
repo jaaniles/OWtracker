@@ -85,13 +85,10 @@
 <body>
     <div id="container">
         <div id="headlines">
-            <h4 class='smallHeadline'>Track Overwatch Rating</h4>
             <h2 class='largeHeadline'>ELO killer</h2>
+            <h4 class='smallHeadline'>Track Overwatch Rating</h4>
         </div>
         <div id="addPlayerDiv" class="addplayer_navigation" style="display:none">
-            <div style="width: 100%">
-                <img style="width:100%;height: 40px;" src="https://upload.wikimedia.org/wikipedia/commons/1/10/Overwatch_text_logo.svg">
-            </div>
             <input id='battlenet' type="text" placeholder="BattleTag (ex. player#6666)" onkeypress="handleKeyPress(event)">
             <p><button onclick="addPlayer()">Track player</button><small style="margin-left: 15px"><i>Case sensitive</i></small></p>
             <div class="hide message" id="message">
@@ -167,12 +164,12 @@
         }
         // Player does not exist, let's add 
         playerlist.push({playerName: playerName, ranks: player.ranks})
-        var playerBox = "<div id='"+battleNet+"_div' class='box divGrid playerbox'><h4>"+playerName+"</h4>"
+        var playerBox = "<div id='"+battleNet+"_div' class='divGrid playerbox'><h4>"+playerName+"</h4>"
         +"<p id='"+playerName+"_rank'><img src='"+newestRank.rank_img+"' class='rankImg'>"
             +newestRank.rank
         +"</p>"
         +"<img id='"+playerName+"_avatar' class='avatar' src='"+player.avatar+"'>"
-        +"<div id='"+playerName+"_chart' class='ct-chart ct-perfect-fourth'></div>"
+        +"<div id='"+playerName+"_chart' class='ct-chart ct-major-tenth'></div>"
         +"<button style='float:right' onclick='removePlayer(&quot;"+battleNet+"&quot;)' data-value='"+battleNet+"'>X</button>"
         +"</div>"
         document.getElementById("players").innerHTML += playerBox        
