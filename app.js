@@ -10,27 +10,31 @@ var firebase = require('firebase')
 var admin = require("firebase-admin");
 admin.initializeApp({
     credential: admin.credential.cert({
+        "project_id": "scoretracker-9a7e5",
+        "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDthT1+5DAEa0x6\nJ3OtPZoQ3ehDf55HI5dxnr6Iv2eLPeT9jV0lqY91SNzoo5rFkUd8tgpJdiQGQ2/B\n9ULAjtJ0a6FoERiP8d8uoL6HC3dTF3N+GlVlT1hXvnCaxXBvdPaKzPI1kIzJY1I6\nT7oZzqtzHY9g8aKMnlvqm1KQrCkChln86KgHrrcmwKHgg6A4BEEbS/MQ0+PQi0rt\nH7lDnIP1rYkUaTRjC3aW5yPs6kcN/ZzfGD72Z2+j/uLhwLpCKrrBc8XVJs8c/8Kh\ntvU52OgQGlhg/4lVfjmybXEUCdV/1FpOovE/jyopzeGkNE2X8ffsfV5iyTjzZ9Hw\n7ErCex2fAgMBAAECggEAMlY3dyni5zzaI1UzFbblbMeqjouAPrFTShgLZy2xQvgm\nDHomEHJD3eZIMuFhTpeAX/Swb2sjLVSjXaads/NQtK2OsmBVJURsORSF7FbIvgpN\nRp9ME8FiBo5sjNBlCKnwCfBvMFznCVMMPSFiXk/HVAkitrfe7BAviKPMNq7Vrhvk\nd0QNR4VzIbMyLpErPwHRGgAgB28A+dsMNUNRvEI5IKTkwT6/3+bR/hrqMY4p7Ubz\nLv4rAY18Ksj/3uQKbJKJAGQqGQYIwIHOydSQTrSFjSw3hSuhWrZbTyV8XPh/zobc\nQBYR4lXG3Z9K49cuY5rsaIKxwuwSYI3wx84UmXkdoQKBgQD38VQuUAwgAB8ixRZw\nmp9l6qrGMj2VLJpvRUfDkod+secEQCYICV742yZhK/wLzwP1Abn9mXw/u22d/D7y\ngZupOwMVXyKuHwmoitsCK1kgzuzZiRwxQx1eLv/TCDlgEPuOMCjjgi+MLSKz/nhS\nCtzBarj1fLKq/Hyal7ry4KSfTwKBgQD1PTUZWFQ5fvNDK85TRvdCJ1X0T20kLQ4S\nQ3Q5mjo1fCPCHM0F2kKQs39JChk0o6b6+Zlr7WDl6wQM9TZoGRZ6CP1tCKhS7rB/\nby2ZmhYyKjv9E3BIYUWiG3nwWrk9GtJ6tN/yDDHBRtEs46VFNW8DPWuGvzyhFdK7\nhyVa6cmIsQKBgB4EK0rICg+9tAdDkOnk7jMqa64+2tG6ap/Z5Uw56wldhDgxg+kp\nKUQ7U7Qj3QmY8EOzB885y57zk9uyc/Rr2GpuaHsn30zxGPw8gzMKCGo+YtIbFTyp\ngV6rlfD4Z+nHZIzcK7cPRa5UsITV478a7YrE3stpYz/r/THB+LH6nDNlAoGAMyY5\n/fhLUNamnDr1xK7HgXe82MD8LZBsH+kLw7vkKiWjO6hQJslYGuAlSzGdAjqj6DLJ\nChavoCS9aop2d43L/1YCrYwht3JrQ5kHtMLLoFjovCciwyXupRn/+96gRhtjDQ7O\nqqhadEp19Fviq6WyasWTuL4IQjzQACb25pheXXECgYEA4MYSEIeGLV+PFSc0272V\nbeS4BtMZN1jC0p70wQm3MmqezU+w4XSDZMB5f5pQXsfbhgcu4s1KQE+POdeNHM4a\ninfQ9YMaHUH2J9fbm93whwLcxEsHfj/zxGtA1G0GMS8NIFtrvzWdRl6VG/JPxLRW\nxn8WwZ1uWn9wS40omujmwsc=\n-----END PRIVATE KEY-----\n",
+        "client_email": "firebase-adminsdk-3j1si@scoretracker-9a7e5.iam.gserviceaccount.com",
     }),
     databaseURL: "https://scoretracker-9a7e5.firebaseio.com/"
 });
 
 // Initialize Firebase
 var config = {
+    apiKey: "AIzaSyCmBhbJCioIU0_9AWsrvyhEcZBHgH6S1gI",
+    authDomain: "scoretracker-9a7e5.firebaseapp.com",
+    databaseURL: "https://scoretracker-9a7e5.firebaseio.com",
+    storageBucket: "scoretracker-9a7e5.appspot.com",
+    messagingSenderId: "783389239694"
 };
 firebase.initializeApp(config);
 var database = firebase.database()
 var auth = firebase.auth()
 
-var dbChangeListeners = []
-
 var fs = require("fs")
 var path = require("path")
-
 var args = require("minimist")(process.argv.slice(2))
-
 const PORT = process.env.PORT || 3000
 const HOST = process.env.HOST || '127.0.0.1'
-const POLLING_INTERVAL = 30000 //ms
+const POLLING_INTERVAL = 11000 //ms
 
 // Serve index.html
 app.use(function(req, res, next) {
@@ -161,6 +165,7 @@ function playerlistHasBattleNet(playerlist, battleNet){
 
 // Updates database with new data
 database.ref("/players/").once('value').then(function(snapshot){
+    return;
     var players = snapshot.val()
     setInterval(function(){
         // Loop through all players in database
@@ -177,10 +182,12 @@ database.ref("/players/").once('value').then(function(snapshot){
                 // Get (perhaps outdated) player info from database
                 database.ref("/players/"+player).once('value').then(function(snapshot){
                     var player_db = snapshot.val()
-                    var newestRankEntry = player_db.ranks[Object.keys(player_db.ranks)[Object.keys(player_db.ranks).length-1]]
-
+                    var newestRankEntry = null
+                    if (player_db.ranks){
+                        newestRankEntry = player_db.ranks[Object.keys(player_db.ranks)[Object.keys(player_db.ranks).length-1]]
+                    }
                     // Only update if new data and current database data are different
-                    if (newestRankEntry.rank != newRank && newestRankEntry.timestamp != timestamp){
+                    if (!newestRankEntry || newestRankEntry.rank != newRank && newestRankEntry.timestamp != timestamp){
                         pushNewRank(player, newRank, player_current.rank_img, timestamp)
                     }
 
@@ -196,6 +203,7 @@ database.ref("/players/").once('value').then(function(snapshot){
         })
     }, POLLING_INTERVAL)
 })
+// Pushes a new rank for specified player
 function pushNewRank(player, newRank, newRankImg, timestamp){
     var newRankRef = database.ref("/players/"+player+"/ranks").push();
     newRankRef.set({
@@ -204,6 +212,7 @@ function pushNewRank(player, newRank, newRankImg, timestamp){
         timestamp: timestamp
     });   
 }
+
 function getPlayerData(player){
     var playerData = {
         avatar: "",
@@ -231,6 +240,7 @@ function getPlayerData(player){
         })
     })
 }
+
 function deletePlayerFromPlayerlist(uid, battleNet){
     return new Promise(function(resolve, reject){
         var getPlayerRef = database.ref("/users/"+uid+"/playerlist").orderByChild("battleNet").equalTo(battleNet)
@@ -247,6 +257,7 @@ function deletePlayerFromPlayerlist(uid, battleNet){
         })  
     })
 }
+
 function verifyUser(idToken){
     return new Promise(function(resolve, reject){
         admin.auth().verifyIdToken(idToken)
