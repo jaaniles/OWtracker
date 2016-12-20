@@ -34,7 +34,7 @@ var path = require("path")
 var args = require("minimist")(process.argv.slice(2))
 const PORT = process.env.PORT || 3000
 const HOST = process.env.HOST || '127.0.0.1'
-const POLLING_INTERVAL = 11000 //ms
+const POLLING_INTERVAL = 60000 //ms
 
 // Serve index.html
 app.use(function(req, res, next) {
@@ -165,7 +165,6 @@ function playerlistHasBattleNet(playerlist, battleNet){
 
 // Updates database with new data
 database.ref("/players/").once('value').then(function(snapshot){
-    return;
     var players = snapshot.val()
     setInterval(function(){
         // Loop through all players in database
